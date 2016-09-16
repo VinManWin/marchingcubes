@@ -11,6 +11,7 @@ struct Vector {
 	Vector& operator*=(float s);
 	Vector& operator/=(float s);
 	Vector& operator+=(const Vector& rhs);
+	Vector& operator-=(const Vector& rhs);
 };
 
 Vector::Vector(float x, float y, float z)
@@ -37,6 +38,13 @@ Vector& Vector::operator+=(const Vector& rhs) {
 	return *this;
 }
 
+Vector operator-(const Vector& v);
+
+Vector& Vector::operator-=(const Vector& rhs) {
+	*this += -rhs;
+	return *this;
+}
+
 Vector operator*(float s, const Vector& v) {
 	Vector result = v;
 	return result *= s;
@@ -55,6 +63,16 @@ Vector operator+(const Vector& lhs, const Vector& rhs) {
 	Vector result = lhs;
 	result += rhs;
 	return result;
+}
+
+Vector operator-(const Vector& lhs, const Vector& rhs) {
+	Vector result = lhs;
+	result -= rhs;
+	return result;
+}
+
+Vector operator-(const Vector& v) {
+	return Vector(-v.x, -v.y, -v.z);
 }
 
 std::ostream& operator<<(std::ostream& out, const Vector& vec) {
@@ -83,12 +101,28 @@ extern const char edgeToCorner[12][2];
 extern const char triangleConnections[256][16];
 
 int main() {
-	Function f = [](float x, float y, float z) -> float {
-		return std::sin(x) + std::sin(y) - z;
-		//return x*y-z - 0.5f;
-		//return y - 0.5f;
+	Function f1 = [](float x, float y, float z) -> float {
+		x -= 2.5f;
+		y -= 2.5f;
+		z -= 2.5f;
+		return x*x + y*y + z*z - 1;
 	};
-	std::vector<Triangle> tris = generateTriangles(f, 0.1f, 40, 40, 40);
+
+	Function f2 = [](float x, float y, float z) -> float {
+		x -= 1.75f;
+		y -= 1.75f;
+		z -= 1.75f;
+		return x*x + y*y + z*z - 0.5f;
+	};
+
+	Function f = [f1, f2](float x, float y, float z) -> float {
+		//return std::sin(x) + std::sin(y) - z;
+		//return x*y-z - 0.5f;
+		//return y + x - 0.3f;
+		return f1(x, y, z) * f2(x, y, z) - z/10;
+	};
+
+	std::vector<Triangle> tris = generateTriangles(f, 0.05f, 100, 100, 100);
 	std::cout << tris.size() << " triangles" << std::endl;
 	std::ofstream fout("mesh.off", std::ios_base::trunc);
 	fout << "OFF" << "\n";
@@ -118,6 +152,7 @@ Vector estimateIntersection(Function f, const Vector& v1, const Vector& v2) {
 	float f2 = exe(f, v2);
 	return (v1 + v2) * 0.5f;
 	//return (std::abs(f1) * v1 + std::abs(f2) * v2)/std::abs(f1-f2);
+	//return v1 + (v2-v1)*std::abs(f1)/(std::abs(f1)+std::abs(f2));
 }
 
 Vector estimateIntersection(Function f, float gridSize, size_t x, size_t y, size_t z, char edgeIndex) {
