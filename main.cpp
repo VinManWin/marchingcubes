@@ -56,7 +56,7 @@ Vector operator*(const Vector& v, float s) {
 
 Vector operator/(const Vector& lhs, float rhs) {
 	Vector result = lhs;
-	return result *= rhs;
+	return result /= rhs;
 }
 
 Vector operator+(const Vector& lhs, const Vector& rhs) {
@@ -119,10 +119,10 @@ int main() {
 		//return std::sin(x) + std::sin(y) - z;
 		//return x*y-z - 0.5f;
 		//return y + x - 0.3f;
-		return f1(x, y, z) * f2(x, y, z) - z/10;
+		return f1(x/20, y/20, z/20) * f2(x/20, y/20, z/20) - z/20/10;
 	};
 
-	std::vector<Triangle> tris = generateTriangles(f, 0.05f, 100, 100, 100);
+	std::vector<Triangle> tris = generateTriangles(f, 1.f, 100, 100, 100);
 	std::cout << tris.size() << " triangles" << std::endl;
 	std::ofstream fout("mesh.off", std::ios_base::trunc);
 	fout << "OFF" << "\n";
@@ -148,11 +148,10 @@ Vector cornerIndexToVector(char index, float gridSize, size_t x, size_t y, size_
 }
 
 Vector estimateIntersection(Function f, const Vector& v1, const Vector& v2) {
-	float f1 = exe(f, v1);
-	float f2 = exe(f, v2);
-	return (v1 + v2) * 0.5f;
-	//return (std::abs(f1) * v1 + std::abs(f2) * v2)/std::abs(f1-f2);
-	//return v1 + (v2-v1)*std::abs(f1)/(std::abs(f1)+std::abs(f2));
+	float f1 = exe(f, v1) + 1;
+	float f2 = exe(f, v2) + 1;
+	//std::cout << (std::abs(f1)/(std::abs(f1)+std::abs(f2))) << std::endl;
+	return v1 + (v2-v1)*(std::abs(f1)/(std::abs(f1)+std::abs(f2)));
 }
 
 Vector estimateIntersection(Function f, float gridSize, size_t x, size_t y, size_t z, char edgeIndex) {
