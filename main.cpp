@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <functional>
-#include <fstream>
 #include "marchingcubes.hpp"
 
 int main() {
@@ -18,15 +17,14 @@ int main() {
 	};
 
 	std::vector<Triangle> tris = generateTriangles(f, 0.05f, 100, 100, 100);
-	std::cout << tris.size() << " triangles" << std::endl;
-	std::ofstream fout("mesh.off", std::ios_base::trunc);
-	fout << "OFF" << "\n";
-	fout << tris.size() * 3 << " " << tris.size() << " 0\n";
+
+	std::cout << "OFF" << "\n";
+	std::cout << tris.size() * 3 << " " << tris.size() << " 0\n";
 	for(const Triangle& tri : tris){
-		fout << tri;
+		std::cout << tri;
 	}
 	for(size_t i = 0; i < tris.size(); ++i){
-		fout << 3 << " " << i*3 << " " << i*3+1 << " " << i*3+2 << "\n";
+		std::cout << 3 << " " << i*3 << " " << i*3+1 << " " << i*3+2 << "\n";
 	}
 }
 
