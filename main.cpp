@@ -101,28 +101,19 @@ extern const char edgeToCorner[12][2];
 extern const char triangleConnections[256][16];
 
 int main() {
-	Function f1 = [](float x, float y, float z) -> float {
-		x -= 2.5f;
-		y -= 2.5f;
-		z -= 2.5f;
+	Function circle = [](float x, float y, float z) -> float {
 		return x*x + y*y + z*z - 1;
 	};
 
-	Function f2 = [](float x, float y, float z) -> float {
-		x -= 1.75f;
-		y -= 1.75f;
-		z -= 1.75f;
-		return x*x + y*y + z*z - 0.5f;
+	Function cylinder = [](float x, float y, float z) -> float {
+		return (x*x + y*y - 1);
 	};
 
-	Function f = [f1, f2](float x, float y, float z) -> float {
-		//return std::sin(x) + std::sin(y) - z;
-		//return x*y-z - 0.5f;
-		//return y + x - 0.3f;
-		return f1(x/20, y/20, z/20) * f2(x/20, y/20, z/20) - z/20/10;
+	Function f = [&](float x, float y, float z) -> float {
+		return circle(x-3, y-3, z-3)*circle(x-2, y-2, z-1)*circle(x-4, y-4, z-3)*cylinder(x-1.5, y-3.5, z-2) - z;
 	};
 
-	std::vector<Triangle> tris = generateTriangles(f, 1.f, 100, 100, 100);
+	std::vector<Triangle> tris = generateTriangles(f, 0.05f, 100, 100, 100);
 	std::cout << tris.size() << " triangles" << std::endl;
 	std::ofstream fout("mesh.off", std::ios_base::trunc);
 	fout << "OFF" << "\n";
@@ -150,7 +141,6 @@ Vector cornerIndexToVector(char index, float gridSize, size_t x, size_t y, size_
 Vector estimateIntersection(Function f, const Vector& v1, const Vector& v2) {
 	float f1 = exe(f, v1) + 1;
 	float f2 = exe(f, v2) + 1;
-	//std::cout << (std::abs(f1)/(std::abs(f1)+std::abs(f2))) << std::endl;
 	return v1 + (v2-v1)*(std::abs(f1)/(std::abs(f1)+std::abs(f2)));
 }
 
@@ -169,9 +159,7 @@ std::vector<Triangle> generateTrianglesForCube(Function f, float gridSize, size_
 		index *= 2;
 		if(exe(f, v) < 0)
 			++index;
-		//std::cout << 8-i-1 << ": " << v << " (" << (exe(f, v) < 0) << ")" << std::endl;
 	}
-	//std::cout << index << std::endl;
 	assert(index < 256);
 
 	const char* tris = triangleConnections[index];
@@ -180,8 +168,6 @@ std::vector<Triangle> generateTrianglesForCube(Function f, float gridSize, size_
 		Vector v1 = estimateIntersection(f, gridSize, x, y, z, tris[i]);
 		Vector v2 = estimateIntersection(f, gridSize, x, y, z, tris[i + 1]);
 		Vector v3 = estimateIntersection(f, gridSize, x, y, z, tris[i + 2]);
-		//std::cout << i << ": " << (int)tris[i] << " " << (int)tris[i+1] << " " << (int)tris[i+2] << "\n"
-		//       << "\t" << v1 << " - " << v2 << " - " << v3 << std::endl;
 		result.emplace_back(v1, v2, v3);
 	}
 
@@ -205,10 +191,6 @@ const char cornerOffsets[8][3] = {
 	{0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0},
 	{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1},
 };
-/*const char cornerOffsets[8][3] = {
-	{0, 0, 0}, {1, 0, 0}, {1, 1, 0}, {0, 1, 0},
-	{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1},
-};*/
 
 const char edgeToCorner[12][2] = {
 	{0, 1}, {1, 2}, {2, 3}, {3, 0},
